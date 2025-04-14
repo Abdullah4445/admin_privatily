@@ -16,93 +16,85 @@ class ChattingPageLogic extends GetxController {
   final FirebaseFirestore myFbFs = FirebaseFirestore.instance;
   final FirebaseAuth myFbAuth = FirebaseAuth.instance;
 
-  // Method to send text and image messages
+  // Method to send messages (text & image)
   Future<void> sendMessage(String chatRoomId, String receiverId, String messageText, {File? imageFile, Uint8List? imageBytes}) async {
     try {
       String senderId = myFbAuth.currentUser!.uid;
-      String imageUrl = ""; // Default image URL for text messages
+      String imageUrl = ""; // Default empty URL for text messages
 
-      // If an image is selected, upload it to Firebase Storage
-      if (imageFile != null) {
-        print("Uploading image..."); // Debug log
-        // Upload image to Firebase Storage
-        TaskSnapshot uploadTask = await storage
-            .ref('chat_images/${'img.png'}')
-            .putFile(imageFile);
-        imageUrl = await uploadTask.ref.getDownloadURL();
-        print("Image uploaded successfully: $imageUrl"); // Debug log
-      } else if (imageBytes != null) {
-        print("Uploading image bytes..."); // Debug log
-        // For Web: Upload image bytes directly to Firebase Storage
-        TaskSnapshot uploadTask = await storage
-            .ref('chat_images/${'img.png'}')
-            .putData(imageBytes); // Upload directly from bytes
-        imageUrl = await uploadTask.ref.getDownloadURL();
-        print("Image uploaded successfully: $imageUrl"); // Debug log
+      // Upload image if provided
+      if (imageFile != null || imageBytes != null) {
+        print("Uploading image...");
+        Reference ref = storage.ref('chat_images/${DateTime.now().millisecondsSinceEpoch}.png');
+        UploadTask uploadTask = imageFile != null ? ref.putFile(imageFile) : ref.putData(imageBytes!);
+
+        TaskSnapshot uploadSnapshot = await uploadTask;
+        imageUrl = await uploadSnapshot.ref.getDownloadURL();
+        print("Image uploaded: $imageUrl");
       }
 
-      // Save message and image URL in Firestore
+      // Save message in Firestore
       await myFbFs.collection('Chatting')
           .doc(chatRoomId)
           .collection('Messages')
           .add({
         'senderId': senderId,
-        'messageText': messageText,
         'receiverId': receiverId,
+        'messageText': messageText,
         'timestamp': FieldValue.serverTimestamp(),
         'messageType': imageFile != null || imageBytes != null ? 'image' : 'text',
-        'imageUrl': imageUrl, // Store image URL if any
+        'imageUrl': imageUrl,
       });
-      print("Message saved to Firestore with image URL: $imageUrl"); // Debug log
+
+      print("Message sent successfully");
 
     } catch (e) {
-      print("Error during image upload: $e"); // Debug log
-      Get.snackbar('Error', 'Failed to send message: $e');
+      print("Error sending message: $e");
+      Get.snackbar('Error', 'Failed to send message');
     }
   }
 
-  // Method to update the messages list
+  // Method to update messages
   void updateMessages(List<Messages> newMessages) {
-    messages.value = newMessages; // Update the messages observable
+    messages.value = newMessages;
   }
 
-  // Method to fetch messages from Firestore
+  // Fetch messages
   Stream<List<Messages>> getMessages(String chatRoomId) {
-    try {
-      return myFbFs
-          .collection('Chatting')
-          .doc(chatRoomId)
-          .collection('Messages')
-          .orderBy('timestamp', descending: true)
-          .snapshots()
-          .map((snapshot) => snapshot.docs
-          .map((doc) =>
-          Messages.fromJson(doc.data() as Map<String, dynamic>, doc.id))
-          .toList());
-    } catch (e) {
-      print('Error fetching messages: $e');
-      return Stream.value([]);
-    }
+    return myFbFs
+        .collection('Chatting')
+        .doc(chatRoomId)
+        .collection('Messages')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+        .map((doc) =>
+        Messages.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+        .toList());
   }
 
-  // Method to pick image from the gallery for web
-  Future<void> pickImage() async {
+  // Image picker function (supports Web & Mobile)
+  Future<void> pickImage(String chatRoomId, String receiverId) async {
     try {
       if (kIsWeb) {
         final pickedFile = await ImagePickerWeb.getImageAsBytes();
         if (pickedFile != null) {
-          sendMessage('chatRoomId', 'receiverId', '', imageBytes: pickedFile); // Send image directly as bytes
+          sendMessage(chatRoomId, receiverId, '', imageBytes: pickedFile);
+        } else {
+          print("No image selected");
         }
       } else {
         final XFile? pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
         if (pickedFile != null) {
           File imageFile = File(pickedFile.path);
-          sendMessage('chatRoomId', 'receiverId', '', imageFile: imageFile); // Send image with an empty message
+          sendMessage(chatRoomId, receiverId, '', imageFile: imageFile);
+        } else {
+          print("No image selected");
         }
       }
     } catch (e) {
       print("Error selecting image: $e");
-      Get.snackbar('Error', 'Error picking image: $e');
+      Get.snackbar('Error', 'Error picking image');
     }
   }
 }

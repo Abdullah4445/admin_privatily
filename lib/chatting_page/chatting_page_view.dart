@@ -25,6 +25,7 @@ class ChattingPage extends StatefulWidget {
 class _ChattingPageState extends State<ChattingPage> {
   final ChattingPageLogic logic = Get.put(ChattingPageLogic());
   final TextEditingController _messageController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -42,7 +43,10 @@ class _ChattingPageState extends State<ChattingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(
+          widget.receiverName,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         backgroundColor: Colors.red,
         elevation: 8,
       ),
@@ -66,6 +70,7 @@ class _ChattingPageState extends State<ChattingPage> {
                     itemBuilder: (context, i) {
                       Messages message = logic.messages[i];
                       bool isMe = message.senderId == logic.myFbAuth.currentUser!.uid;
+
                       return Align(
                         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                         child: Container(
@@ -87,18 +92,27 @@ class _ChattingPageState extends State<ChattingPage> {
                             message.messageText,
                             style: TextStyle(fontSize: 16, color: isMe ? Colors.white : Colors.black87),
                           )
-                              : Image.network(
-                            message.imageUrl ?? '', // Render the image using URL
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child; // If image is loaded
-                              }
-                              return Center(child: CircularProgressIndicator()); // Loader
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.error, color: Colors.red); // Error handling
-                            },
-                          ),
+                              : message.imageUrl != null && message.imageUrl!.isNotEmpty
+                              ? SizedBox(
+                            height: 150,
+                            width: 150,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                message.imageUrl!,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(child: CircularProgressIndicator());
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Error loading image: $error');
+                                  return const Icon(Icons.error, color: Colors.red);
+                                },
+                              ),
+                            ),
+                          )
+                              : const Icon(Icons.image_not_supported, color: Colors.grey),
                         ),
                       );
                     },
@@ -124,31 +138,37 @@ class _ChattingPageState extends State<ChattingPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     IconButton(
                       onPressed: () async {
-                        await logic.pickImage(); // Pick image from gallery
+                        setState(() {
+                          isLoading = true;
+                        });
+                        await logic.pickImage(widget.chatRoomId, widget.receiverId);
+                        setState(() {
+                          isLoading = false;
+                        });
                       },
-                      icon: Icon(Icons.image),
+                      icon: const Icon(Icons.image),
                     ),
-                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
                         String messageText = _messageController.text.trim();
                         if (messageText.isNotEmpty) {
+                          setState(() {
+                            isLoading = true;
+                          });
                           logic.sendMessage(widget.chatRoomId, widget.receiverId, messageText);
                           _messageController.clear();
+                          setState(() {
+                            isLoading = false;
+                          });
                         }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Colors.deepPurple, Colors.purpleAccent],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: Colors.deepPurple,
                         ),
                         child: const Icon(Icons.send, color: Colors.white),
                       ),
@@ -158,6 +178,10 @@ class _ChattingPageState extends State<ChattingPage> {
               ),
             ],
           ),
+          if (isLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
     );
