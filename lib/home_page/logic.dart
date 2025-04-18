@@ -16,7 +16,7 @@ class HomeLogic extends GetxController {
 
   Future<List<Students>> getUserOnFirebase() async {
     try {
-      QuerySnapshot data = await firestore.collection("Students").get();
+      QuerySnapshot data = await firestore.collection("ChatsRoomId").get();
       for (var element in data.docs) {
         Students students =
             Students.fromJson(element.data() as Map<String, dynamic>);
@@ -37,7 +37,7 @@ class HomeLogic extends GetxController {
           : "$otherUserId-$currentUserId";
 
       DocumentSnapshot chatRoomDoc =
-          await firestore.collection("Chats").doc(chatRoomId).get();
+          await firestore.collection("ChatsRoomId").doc(chatRoomId).get();
 
       if (!chatRoomDoc.exists) {
         await firestore.collection('ChatsRoomId').doc(chatRoomId).set({
