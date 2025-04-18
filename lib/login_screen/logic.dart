@@ -10,21 +10,23 @@ import '../models/students.dart';
 class Login_pageLogic extends GetxController {
   TextEditingController emailC = TextEditingController();
   TextEditingController passC = TextEditingController();
-  TextEditingController NameC = TextEditingController();
+  TextEditingController nameC = TextEditingController();
   var fbAu = FirebaseAuth.instance;
   var fbIn = FirebaseFirestore.instance;
 
   Future<void> createUser() async {
     try {
-      if (emailC.text.isEmpty || passC.text.isEmpty || NameC.text.isEmpty) {
+      if (emailC.text.isEmpty || passC.text.isEmpty || nameC.text.isEmpty) {
         Get.snackbar('Error', 'All fields are required');
       } else {
         UserCredential userCredential =
         await fbAu.createUserWithEmailAndPassword(
             email: emailC.text, password: passC.text);
+        print(fbAu.currentUser!.uid);
         if (userCredential.user != null) {
-          String name = NameC.text;
+          String name = nameC.text;
           String id = userCredential.user!.uid;
+
           Students students = Students(
             name: name,
             id: id,
@@ -50,6 +52,8 @@ class Login_pageLogic extends GetxController {
     } else {
       try {
         await fbAu.signInWithEmailAndPassword(email: emailC.text, password: passC.text);
+        print(fbAu.currentUser!.uid);
+
         Get.to(() => HomePage());
         print("saim");
       } on FirebaseAuthException catch (e) {
@@ -60,4 +64,6 @@ class Login_pageLogic extends GetxController {
       }
     }
   }
+
+
 }

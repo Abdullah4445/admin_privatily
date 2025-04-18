@@ -98,3 +98,4 @@ class ChattingPageLogic extends GetxController {
     }
   }
 }
+

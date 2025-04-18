@@ -45,7 +45,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: TextField(
-                    controller: logic.NameC,
+                    controller: logic.nameC,
                     decoration: InputDecoration(
                       hintText: "Enter name",
                       border: InputBorder.none,

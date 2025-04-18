@@ -64,7 +64,7 @@ class HomeLogic extends GetxController {
     }
   }
 
-  Future<void> sigout() async {
+  Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
   }
 }

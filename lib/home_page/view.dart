@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              logic.sigout();
+              logic.signOut();
             },
             icon: const Icon(Icons.logout, color: Colors.white),
           )

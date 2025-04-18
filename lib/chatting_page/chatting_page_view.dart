@@ -45,9 +45,12 @@ class _ChattingPageState extends State<ChattingPage> {
       appBar: AppBar(
         title: Text(
           widget.receiverName,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.deepPurple,
         elevation: 8,
       ),
       body: Stack(
@@ -60,7 +63,11 @@ class _ChattingPageState extends State<ChattingPage> {
                     return const Center(
                       child: Text(
                         'No messages',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
                       ),
                     );
                   }
@@ -69,12 +76,17 @@ class _ChattingPageState extends State<ChattingPage> {
                     itemCount: logic.messages.length,
                     itemBuilder: (context, i) {
                       Messages message = logic.messages[i];
-                      bool isMe = message.senderId == logic.myFbAuth.currentUser!.uid;
+                      bool isMe =
+                          message.senderId == logic.myFbAuth.currentUser!.uid;
 
                       return Align(
-                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        alignment:
+                            isMe ? Alignment.centerRight : Alignment.centerLeft,
                         child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 5,
+                            horizontal: 10,
+                          ),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isMe ? Colors.deepPurple : Colors.white,
@@ -87,32 +99,114 @@ class _ChattingPageState extends State<ChattingPage> {
                               ),
                             ],
                           ),
-                          child: message.messageType == 'text'
-                              ? Text(
-                            message.messageText,
-                            style: TextStyle(fontSize: 16, color: isMe ? Colors.white : Colors.black87),
-                          )
-                              : message.imageUrl != null && message.imageUrl!.isNotEmpty
-                              ? SizedBox(
-                            height: 150,
-                            width: 150,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                message.imageUrl!,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(child: CircularProgressIndicator());
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  print('Error loading image: $error');
-                                  return const Icon(Icons.error, color: Colors.red);
-                                },
-                              ),
-                            ),
-                          )
-                              : const Icon(Icons.image_not_supported, color: Colors.grey),
+                          child:
+                              message.messageType == 'text'
+                                  ? Text(
+                                    message.messageText,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color:
+                                          isMe ? Colors.white : Colors.black87,
+                                    ),
+                                  )
+                                  : message.imageUrl != null &&
+                                      message.imageUrl!.isNotEmpty
+                                  ? GestureDetector(
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder:
+                                            (_) => Dialog(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              insetPadding: EdgeInsets.all(10),
+                                              child: GestureDetector(
+                                                onTap:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: InteractiveViewer(
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    child: Image.network(
+                                                      message.imageUrl!,
+                                                      fit: BoxFit.contain,
+                                                      loadingBuilder: (
+                                                        context,
+                                                        child,
+                                                        loadingProgress,
+                                                      ) {
+                                                        if (loadingProgress ==
+                                                            null)
+                                                          return child;
+                                                        return Center(
+                                                          child:
+                                                              CircularProgressIndicator(),
+                                                        );
+                                                      },
+                                                      errorBuilder: (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        print(
+                                                          'Error loading image: $error',
+                                                        );
+                                                        return const Icon(
+                                                          Icons.error,
+                                                          color: Colors.red,
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                      );
+                                    },
+                                    child: SizedBox(
+                                      height: 150,
+                                      width: 150,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          message.imageUrl!,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (
+                                            context,
+                                            child,
+                                            loadingProgress,
+                                          ) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                          },
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            print(
+                                              'Error loading image: $error',
+                                            );
+                                            return const Icon(
+                                              Icons.error,
+                                              color: Colors.red,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  : const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                  ),
                         ),
                       );
                     },
@@ -134,7 +228,10 @@ class _ChattingPageState extends State<ChattingPage> {
                             borderRadius: BorderRadius.circular(30),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                         ),
                       ),
                     ),
@@ -143,7 +240,10 @@ class _ChattingPageState extends State<ChattingPage> {
                         setState(() {
                           isLoading = true;
                         });
-                        await logic.pickImage(widget.chatRoomId, widget.receiverId);
+                        await logic.pickImage(
+                          widget.chatRoomId,
+                          widget.receiverId,
+                        );
                         setState(() {
                           isLoading = false;
                         });
@@ -157,7 +257,11 @@ class _ChattingPageState extends State<ChattingPage> {
                           setState(() {
                             isLoading = true;
                           });
-                          logic.sendMessage(widget.chatRoomId, widget.receiverId, messageText);
+                          logic.sendMessage(
+                            widget.chatRoomId,
+                            widget.receiverId,
+                            messageText,
+                          );
                           _messageController.clear();
                           setState(() {
                             isLoading = false;
@@ -178,10 +282,7 @@ class _ChattingPageState extends State<ChattingPage> {
               ),
             ],
           ),
-          if (isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
+          if (isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );
