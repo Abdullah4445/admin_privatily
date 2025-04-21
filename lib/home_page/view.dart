@@ -15,18 +15,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Users",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
-        ),
+        title: const Text("Users", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
         backgroundColor: Colors.deepPurple,
         actions: [
           IconButton(
-            onPressed: () {
-              logic.signOut();
-            },
+            onPressed: () => logic.signOut(),
             icon: const Icon(Icons.logout, color: Colors.white),
-          )
+          ),
         ],
       ),
       body: Column(
@@ -36,47 +31,37 @@ class HomePage extends StatelessWidget {
               future: logic.getUserOnFirebase(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.deepPurple),
-                  );
+                  return const Center(child: CircularProgressIndicator(color: Colors.deepPurple));
                 } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
-                    ),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text("No users found", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  );
+                  return const Center(child: Text("No users found", style: TextStyle(fontSize: 18)));
                 }
+
+                final users = snapshot.data!;
                 return ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, i) {
-                    final user = snapshot.data![i];
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
                     bool isCurrentUser = user.id == FirebaseAuth.instance.currentUser?.uid;
-                    return isCurrentUser
-                        ? const SizedBox()
-                        : Card(
-                      elevation: 6.0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+                    if (isCurrentUser) return const SizedBox(); // skip current user
+
+                    return Card(
+                      elevation: 6,
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(12),
-                        onTap: () {
-                          logic.createChatRoomId(user.id, user.name);
-                        },
+                        onTap: () => logic.createChatRoomId(user.id, user.name),
                         leading: CircleAvatar(
                           backgroundColor: Colors.deepPurple,
-                          child: Text(
-                            user.name[0].toUpperCase(),
-                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                          child: Text(user.name[0].toUpperCase(),
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                         title: Text(
                           user.name,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple),
                         ),
                       ),
                     );
@@ -85,9 +70,6 @@ class HomePage extends StatelessWidget {
               },
             ),
           ),
-
-          // Groups List
-
         ],
       ),
     );

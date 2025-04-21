@@ -34,7 +34,7 @@ class ChattingPageLogic extends GetxController {
       }
 
       // Save message in Firestore
-      await myFbFs.collection('Chatting')
+      await myFbFs.collection('Guests')
           .doc(chatRoomId)
           .collection('Messages')
           .add({
@@ -62,14 +62,14 @@ class ChattingPageLogic extends GetxController {
   // Fetch messages
   Stream<List<Messages>> getMessages(String chatRoomId) {
     return myFbFs
-        .collection('Chatting')
+        .collection('Guests')
         .doc(chatRoomId)
         .collection('Messages')
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
         .map((doc) =>
-        Messages.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+        Messages.fromJson(doc.data(), doc.id))
         .toList());
   }
 
