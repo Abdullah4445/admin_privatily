@@ -4,56 +4,56 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../chatting_page/chatting_page_view.dart';
 import '../models/students.dart';
+import '../utils/utils.dart';
 
 class HomeLogic extends GetxController {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-
-  final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2';
-  final String adminName = 'Admin';
-
   List<Students> getStudents = [];
+  final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2';
 
   Future<List<Students>> getUserOnFirebase() async {
     try {
-      getStudents.clear(); // ensure fresh list
-      QuerySnapshot data = await firestore.collection("Guests").get();
+      QuerySnapshot data = await firestore.collection("ChatsRoomId").get();
       for (var element in data.docs) {
-        Students students = Students.fromJson(element.data() as Map<String, dynamic>);
+        Students students =
+        Students.fromJson(element.data() as Map<String, dynamic>);
         getStudents.add(students);
       }
-      print("✅ Total Guests Fetched: ${getStudents.length}");
       return getStudents;
     } catch (e) {
-      Get.snackbar("Error", "❌ Failed to fetch users: $e");
+      Get.snackbar("Error", "Failed to fetch users: $e");
       return [];
     }
   }
-
   Future<void> createChatRoomId(String otherUserId, String receiverName) async {
     try {
-      String currentUserId = auth.currentUser!.uid;
+      if (otherUserId.isEmpty) {
+        Get.snackbar("Error", "❗ otherUserId is empty");
+        return;
+      }
 
-      String chatRoomId = currentUserId.hashCode <= otherUserId.hashCode
-          ? "$currentUserId-$otherUserId"
-          : "$otherUserId-$currentUserId";
+      String chatRoomId = generateChatRoomId(otherUserId,fixedAdminId, );
 
-      DocumentSnapshot chatRoomDoc =
-      await firestore.collection("ChatsRoomId").doc(chatRoomId).get();
+      print("📌 fixedAdminId: $fixedAdminId");
+      print("📌 otherUserId: $otherUserId");
+      print("🔍 Checking ChatRoom: $chatRoomId");
+
+      DocumentSnapshot chatRoomDoc = await firestore
+          .collection("ChatsRoomId")
+          .doc(chatRoomId)
+          .get();
 
       if (!chatRoomDoc.exists) {
+        print("🆕 Chat Room Does NOT Exist, creating new one...");
         await firestore.collection('ChatsRoomId').doc(chatRoomId).set({
           'chatRoomId': chatRoomId,
-          'participants': [currentUserId, otherUserId],
+          'participants': [fixedAdminId, otherUserId],
           'createdAt': FieldValue.serverTimestamp(),
         });
-        if (kDebugMode) {
-          print("✅ New Chat Room Created: $chatRoomId");
-        }
+        print("✅ New Chat Room Created: $chatRoomId");
       } else {
-        if (kDebugMode) {
-          print("⚡ Chat Room Already Exists: $chatRoomId");
-        }
+        print("⚡ Chat Room Already Exists: $chatRoomId");
       }
 
       // Navigate to chat page
@@ -64,10 +64,7 @@ class HomeLogic extends GetxController {
       ));
     } catch (e) {
       Get.snackbar("Error", "❌ Failed to create chat room: $e");
+      print("❌ Error creating chat room: $e");
     }
-  }
-
-  Future<void> signOut() async {
-    await auth.signOut();
   }
 }

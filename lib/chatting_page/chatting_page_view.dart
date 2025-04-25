@@ -71,146 +71,43 @@ class _ChattingPageState extends State<ChattingPage> {
                       ),
                     );
                   }
-                  return ListView.builder(
-                    reverse: true,
-                    itemCount: logic.messages.length,
-                    itemBuilder: (context, i) {
-                      Messages message = logic.messages[i];
-                      bool isMe =
-                          message.senderId == logic.myFbAuth.currentUser!.uid;
+                  return StreamBuilder<List<Messages>>(
+                    stream: logic.getMessages(widget.chatRoomId),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No messages yet'));
+                      }
 
-                      return Align(
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 5,
-                            horizontal: 10,
-                          ),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isMe ? Colors.deepPurple : Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(2, 2),
+                      final messages = snapshot.data!;
+                      return ListView.builder(
+                        reverse: true,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isMe = message.senderId == logic.myFbAuth.currentUser?.uid;
+                          return Align(
+                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isMe ? Colors.deepPurple : Colors.white,
+                                borderRadius: BorderRadius.circular(15),
                               ),
-                            ],
-                          ),
-                          child:
-                              message.messageType == 'text'
-                                  ? Text(
-                                    message.messageText,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color:
-                                          isMe ? Colors.white : Colors.black87,
-                                    ),
-                                  )
-                                  : message.imageUrl != null &&
-                                      message.imageUrl!.isNotEmpty
-                                  ? GestureDetector(
-                                    onTap: () {
-                                      showDialog(
-                                        context: context,
-                                        builder:
-                                            (_) => Dialog(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              insetPadding: EdgeInsets.all(10),
-                                              child: GestureDetector(
-                                                onTap:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                                child: InteractiveViewer(
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    child: Image.network(
-                                                      message.imageUrl!,
-                                                      fit: BoxFit.contain,
-                                                      loadingBuilder: (
-                                                        context,
-                                                        child,
-                                                        loadingProgress,
-                                                      ) {
-                                                        if (loadingProgress ==
-                                                            null)
-                                                          return child;
-                                                        return Center(
-                                                          child:
-                                                              CircularProgressIndicator(),
-                                                        );
-                                                      },
-                                                      errorBuilder: (
-                                                        context,
-                                                        error,
-                                                        stackTrace,
-                                                      ) {
-                                                        print(
-                                                          'Error loading image: $error',
-                                                        );
-                                                        return const Icon(
-                                                          Icons.error,
-                                                          color: Colors.red,
-                                                        );
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                      );
-                                    },
-                                    child: SizedBox(
-                                      height: 150,
-                                      width: 150,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          message.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          loadingBuilder: (
-                                            context,
-                                            child,
-                                            loadingProgress,
-                                          ) {
-                                            if (loadingProgress == null)
-                                              return child;
-                                            return Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            );
-                                          },
-                                          errorBuilder: (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) {
-                                            print(
-                                              'Error loading image: $error',
-                                            );
-                                            return const Icon(
-                                              Icons.error,
-                                              color: Colors.red,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  : const Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey,
-                                  ),
-                        ),
+                              child: Text(
+                                message.messageText,
+                                style: TextStyle(
+                                  color: isMe ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
+
+
                 }),
               ),
               Padding(

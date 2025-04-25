@@ -28,7 +28,7 @@ class Login_pageLogic extends GetxController {
           String id = userCredential.user!.uid;
 
           Students students = Students(
-            name: name,
+            guestName: name,
             id: id,
             createdAt: DateTime.now().microsecondsSinceEpoch,
           );
