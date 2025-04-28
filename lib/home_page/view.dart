@@ -19,6 +19,7 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.deepPurple,
 
       ),
+    //  using stream
       body: Column(
         children: [
           Expanded(
