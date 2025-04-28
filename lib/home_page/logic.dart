@@ -12,20 +12,22 @@ class HomeLogic extends GetxController {
   List<Students> getStudents = [];
   final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2';
 
-  Future<List<Students>> getUserOnFirebase() async {
+  Stream<List<Students>> getUserStreamOnFirebase() {
     try {
-      QuerySnapshot data = await firestore.collection("ChatsRoomId").get();
-      for (var element in data.docs) {
-        Students students =
-        Students.fromJson(element.data() as Map<String, dynamic>);
-        getStudents.add(students);
-      }
-      return getStudents;
+      return firestore.collection("ChatsRoomId").snapshots().map((snapshot) {
+        List<Students> studentsList = snapshot.docs.map((doc) {
+          return Students.fromJson(doc.data() as Map<String, dynamic>);
+        }).toList();
+        return studentsList;
+      });
     } catch (e) {
+      // Streams mein errors ko normally throw karte hain ya default empty list dete hain
       Get.snackbar("Error", "Failed to fetch users: $e");
-      return [];
+      return const Stream.empty();
     }
   }
+
+
   Future<void> createChatRoomId(String otherUserId, String receiverName) async {
     try {
       if (otherUserId.isEmpty) {
