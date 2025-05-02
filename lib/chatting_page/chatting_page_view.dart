@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 
 import '../models/messages.dart';
@@ -78,6 +79,11 @@ class _ChattingPageState extends State<ChattingPage> {
                         return const Center(child: Text('No messages yet'));
                       }
 
+
+                      String _formatTimestamp(DateTime timestamp) {
+                        return DateFormat('hh:mm a').format(timestamp); // Example: 05:42 PM
+                      }
+
                       final messages = snapshot.data!;
                       return ListView.builder(
                         reverse: true,
@@ -87,21 +93,45 @@ class _ChattingPageState extends State<ChattingPage> {
                           final isMe = message.senderId == logic.myFbAuth.currentUser?.uid;
                           return Align(
                             alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isMe ? Colors.deepPurple : Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Text(
-                                message.messageText,
-                                style: TextStyle(
-                                  color: isMe ? Colors.white : Colors.black,
+                            child: IntrinsicWidth(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 5),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isMe ? Colors.deepPurple : Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      message.messageText,
+                                      style: TextStyle(
+                                        color: isMe ? Colors.white : Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Align(
+                                      alignment: Alignment.bottomLeft,
+                                      child: Text(
+                                        _formatTimestamp(message.timestamp!),
+                                        style: TextStyle(
+                                          color: isMe ? Colors.white70 : Colors.black54,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           );
+
+
+
+
+
+
                         },
                       );
                     },
