@@ -39,7 +39,7 @@ class _ChattingPageState extends State<ChattingPage> {
       logic.updateMessages(newMessages);
     });
   }
-
+//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
