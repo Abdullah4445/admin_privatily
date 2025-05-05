@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import '../chatting_page/chatting_page_logic.dart';
 import '../chatting_page/chatting_page_view.dart';
 import '../models/students.dart';
 import '../utils/utils.dart';
@@ -59,7 +60,7 @@ class HomeLogic extends GetxController {
       }
 
       // Navigate to chat page
-      Get.to(() => ChattingPage(
+      Get.to(() => ChattingPage (
         chatRoomId: chatRoomId,
         receiverId: otherUserId,
         receiverName: receiverName,

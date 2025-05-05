@@ -59,5 +59,5 @@ class ChattingPageLogic extends GetxController {
 
   void updateMessages(List<Messages> newMessages) {
     messages.value = newMessages;
-  }
+    }
 }

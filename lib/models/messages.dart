@@ -57,7 +57,7 @@ class Messages {
     required this.receiverId,
     required this.messageType,
     this.timestamp,
-    this.imageUrl,
+    this.imageUrl, String? audioUrl,
   });
 
   factory Messages.fromJson(Map<String, dynamic> json, String id) {
