@@ -9,7 +9,8 @@ class ChattingPageLogic extends GetxController {
   final FirebaseFirestore myFbFs = FirebaseFirestore.instance;
   final FirebaseAuth myFbAuth = FirebaseAuth.instance;
   var messages = <Messages>[].obs;
-
+  final RxBool receiverOnlineStatus = false.obs;
+  
   // ✅ Send text message
   Future<void> sendMessage(String chatRoomId, String receiverId, String messageText) async {
     try {
