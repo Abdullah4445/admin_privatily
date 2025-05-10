@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
+import '../firebase_utils.dart';
 import '../home_page/view.dart';
 import '../models/students.dart';
 
@@ -14,6 +15,15 @@ class Login_pageLogic extends GetxController {
   var fbAu = FirebaseAuth.instance;
   var fbIn = FirebaseFirestore.instance;
 
+  // Future<void> setUserOnline() async {
+  //   final user = fbAu.currentUser;
+  //   if (user != null) {
+  //     await fbIn.collection('users').doc(user.uid).set({
+  //       'isOnline': true,
+  //       'lastSeen': FieldValue.serverTimestamp(),
+  //     }, SetOptions(merge: true));
+  //   }
+  // }
   Future<void> createUser() async {
     try {
       if (emailC.text.isEmpty || passC.text.isEmpty || nameC.text.isEmpty) {
@@ -22,6 +32,7 @@ class Login_pageLogic extends GetxController {
         UserCredential userCredential =
         await fbAu.createUserWithEmailAndPassword(
             email: emailC.text, password: passC.text);
+        await setUserOnline();
         print(fbAu.currentUser!.uid);
         if (userCredential.user != null) {
           String name = nameC.text;
