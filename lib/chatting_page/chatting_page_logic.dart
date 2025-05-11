@@ -1,7 +1,11 @@
+import 'dart:ui';
+
+import 'package:admin_privatily/chatting_page/widgets/variables/globalVariables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
+import '../firebase_utils.dart';
 import '../models/messages.dart'; // Ensure this path is correct
 
 class ChattingPageLogic extends GetxController {
@@ -77,9 +81,53 @@ class ChattingPageLogic extends GetxController {
     messages.value = newMessages;
   }
 
+  void didChangeAppLifecycleState(AppLifecycleState state,String chatIdoomId ) {
+    if (state == AppLifecycleState.resumed) {
+      setUserOnline(globalChatRoomId);
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      setUserOffline(chatIdoomId);
+    }
+  }
+  Future<void> setUserOffline(String chatIdoomId ) async {
+    final user = myFbAuth.currentUser;
+    if (user != null) {
+      await myFbFs.collection('ChatsRoomId').doc(chatIdoomId).collection("usersStatus").doc(user.uid).set({
+        'isOnline': false,
+        'lastSeen': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+  }
+  void setTypingStatus(bool isTyping ,String chatIdoomId ) async {
+    final user = myFbAuth.currentUser;
+    if (user != null) {
+      await myFbFs.collection('ChatsRoomId').doc(chatIdoomId).collection("usersStatus").doc(user.uid).set({
+        'isTyping': isTyping,
+      }, SetOptions(merge: true));
+    }
+  }
+
   @override
   void onClose() {
     // You don't need to call Get.delete here. GetX manages the lifecycle.
     super.onClose();
   }
+
+// Future<void> setUserOnline() async {
+//   final user = _auth.currentUser;
+//   if (user != null) {
+//     try {
+//       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+//         'isOnline': true,
+//         'lastSeen': FieldValue.serverTimestamp(),
+//       }, SetOptions(merge: true));
+//       print("User ${user.uid} set to online");
+//     } catch (e) {
+//       print("Error setting user online: $e");
+//     }
+//   } else {
+//     print("No user logged in, cannot set online status.");
+//   }
+// }
 }

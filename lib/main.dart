@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';  // Import FirebaseAuth
 import 'package:admin_privatily/firebase_utils.dart';  // Import firebase_utils.dart
 
+import 'chatting_page/widgets/variables/globalVariables.dart';
 import 'firebase_options.dart';
 
 void main() async{
@@ -18,7 +19,7 @@ void main() async{
 
   // Call setUserOnline if the user is already logged in
   if (user != null) {
-    await setUserOnline();
+    await setUserOnline(globalChatRoomId);
   }
 
   runApp(MyApp());

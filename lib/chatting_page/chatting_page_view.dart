@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:admin_privatily/chatting_page/widgets/GuestStatus.dart';
 import 'package:admin_privatily/chatting_page/widgets/chat_bubble.dart';
 import 'package:admin_privatily/chatting_page/widgets/date_header.dart';
 import 'package:admin_privatily/chatting_page/widgets/message_input_field.dart';
+import 'package:admin_privatily/chatting_page/widgets/variables/globalVariables.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -37,14 +39,15 @@ class _ChattingPageState extends State<ChattingPage>
   bool isLoading = false;
 
   Timer? _typingTimer;
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
+
 
   @override
   void initState() {
     super.initState();
+
+    globalChatRoomId = widget.chatRoomId;
     WidgetsBinding.instance.addObserver(this);
-    setUserOnline();
+    setUserOnline(globalChatRoomId);
 
     logic.getMessages(widget.chatRoomId).listen((newMessages) {
       logic.updateMessages(newMessages);
@@ -53,56 +56,43 @@ class _ChattingPageState extends State<ChattingPage>
 
   @override
   void dispose() {
-    setUserOffline();
+   logic.setUserOffline(widget.chatRoomId);
     WidgetsBinding.instance.removeObserver(this);
     _typingTimer?.cancel();
     Get.delete<ChattingPageLogic>();
     super.dispose();
   }
 
-  Future<void> setUserOffline() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await _firestore.collection('users').doc(user.uid).set({
-        'isOnline': false,
-        'lastSeen': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
-  }
+
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setUserOnline();
-    } else if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      setUserOffline();
-    }
-  }
 
-  void setTypingStatus(bool isTyping) async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await _firestore.collection('users').doc(user.uid).set({
-        'isTyping': isTyping,
-      }, SetOptions(merge: true));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(widget.receiverName,
-                style: const TextStyle(color: Colors.white)),
-            SizedBox(width: 8),
-            GuestStatus(guestUserId: widget.receiverId),
-          ],
+        title: Card(
+color: Colors.grey,
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.all(10),
+            height: 50,
+            width: screenWidth*.65,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(widget.receiverName,
+                    style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+                SizedBox(width: 8),
+                GuestStatus(guestUserId: widget.receiverId),
+              ],
+            ),
+          ),
         ),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.white70,
       ),
       body: Stack(
         children: [
@@ -159,7 +149,7 @@ class _ChattingPageState extends State<ChattingPage>
                   onChanged: (text) {
                     final isTyping = text.trim().isNotEmpty;
                     print("onChanged called. text: '$text', isTyping: $isTyping");
-                    setTypingStatus(isTyping);
+                    logic.setTypingStatus(isTyping,widget.chatRoomId);
                     if (_typingTimer != null && _typingTimer!.isActive) {
                       print("Timer cancelled");
                       _typingTimer!.cancel();
@@ -167,7 +157,7 @@ class _ChattingPageState extends State<ChattingPage>
                     if (isTyping) {
                       _typingTimer = Timer(const Duration(seconds: 1), () {
                         print("Timer expired, setting isTyping to false");
-                        setTypingStatus(false);
+                        logic.setTypingStatus(false,widget.chatRoomId);
                       });
                     } else {
                       print("Text field is empty");
@@ -183,62 +173,6 @@ class _ChattingPageState extends State<ChattingPage>
     );
   }
 
-  Future<void> setUserOnline() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'isOnline': true,
-          'lastSeen': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        print("User ${user.uid} set to online");
-      } catch (e) {
-        print("Error setting user online: $e");
-      }
-    } else {
-      print("No user logged in, cannot set online status.");
-    }
-  }
+
 }
 
-class GuestStatus extends StatelessWidget {
-  final String guestUserId;
-
-  const GuestStatus({Key? key, required this.guestUserId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(guestUserId)
-          .snapshots(),
-      builder: (context, snapshot) {
-        print("StreamBuilder snapshot: ${snapshot.data?.data()}");
-        if (snapshot.hasData && snapshot.data!.exists) {
-          final userData = snapshot.data!.data() as Map<String, dynamic>;
-          final isOnline = userData['isOnline'] ?? false;
-          final isTyping = userData['isTyping'] ?? false;
-          final lastSeen = userData['lastSeen'] as Timestamp?;
-
-          if (isTyping) {
-            return const Text("(Typing...)");
-          } else if (isOnline) {
-            return const Text("(Online)");
-          } else {
-            if (lastSeen != null) {
-              DateTime dateTime = lastSeen.toDate();
-              String formattedDate =
-              DateFormat('dd/MM/yyyy hh:mm a').format(dateTime);
-              return Text("(Last seen: $formattedDate)");
-            } else {
-              return const Text("(Offline)");
-            }
-          }
-        } else {
-          return const Text("(Loading status...)");
-        }
-      },
-    );
-  }
-}

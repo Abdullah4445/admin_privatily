@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
+import '../chatting_page/widgets/variables/globalVariables.dart';
 import '../firebase_utils.dart';
 import '../home_page/view.dart';
 import '../models/students.dart';
@@ -32,7 +33,7 @@ class Login_pageLogic extends GetxController {
         UserCredential userCredential =
         await fbAu.createUserWithEmailAndPassword(
             email: emailC.text, password: passC.text);
-        await setUserOnline();
+        await setUserOnline(globalChatRoomId);
         print(fbAu.currentUser!.uid);
         if (userCredential.user != null) {
           String name = nameC.text;
