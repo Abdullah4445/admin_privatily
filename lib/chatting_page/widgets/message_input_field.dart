@@ -4,12 +4,14 @@ class MessageInputField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSendPressed;
   final VoidCallback onImagePressed;
+  final ValueChanged<String> onChanged; // Fix here
 
   const MessageInputField({
     Key? key,
     required this.controller,
     required this.onSendPressed,
-    required this.onImagePressed, required  onChanged,
+    required this.onImagePressed,
+    required this.onChanged, // Fix here
   }) : super(key: key);
 
   @override
@@ -19,6 +21,7 @@ class MessageInputField extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller,
+            onChanged: onChanged, // <- Use onChanged here
             decoration: InputDecoration(
               hintText: "Type a message...",
               filled: true,
