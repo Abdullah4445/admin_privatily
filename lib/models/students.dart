@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Students {
-  String guestName;
+  String name;
   int createdAt; // Stored as microsecondsSinceEpoch
   String id;
 
   Students({
-    required this.guestName,
+    required this.name,
     required this.id,
     required this.createdAt,
   });
@@ -14,7 +14,7 @@ class Students {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      'name': guestName,
+      'name': name,
       'id': id,
       'createdAt': createdAt,
     };
@@ -33,7 +33,7 @@ class Students {
     }
 
     return Students(
-      guestName: json['guestName'] ?? '',
+      name: json['name'] ?? '',
       id: json['id'] ?? '',
       createdAt: timestamp,
     );

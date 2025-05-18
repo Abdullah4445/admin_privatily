@@ -46,7 +46,7 @@ class GuestStatus extends StatelessWidget {
                 "(Last seen: $formattedDate)",
                 style: const TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: Colors.grey,
+                  color: Colors.white,
                 ),
               );
             } else {

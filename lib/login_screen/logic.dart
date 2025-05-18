@@ -16,15 +16,7 @@ class Login_pageLogic extends GetxController {
   var fbAu = FirebaseAuth.instance;
   var fbIn = FirebaseFirestore.instance;
 
-  // Future<void> setUserOnline() async {
-  //   final user = fbAu.currentUser;
-  //   if (user != null) {
-  //     await fbIn.collection('users').doc(user.uid).set({
-  //       'isOnline': true,
-  //       'lastSeen': FieldValue.serverTimestamp(),
-  //     }, SetOptions(merge: true));
-  //   }
-  // }
+
   Future<void> createUser() async {
     try {
       if (emailC.text.isEmpty || passC.text.isEmpty || nameC.text.isEmpty) {
@@ -40,7 +32,7 @@ class Login_pageLogic extends GetxController {
           String id = userCredential.user!.uid;
 
           Students students = Students(
-            guestName: name,
+            name: name,
             id: id,
             createdAt: DateTime.now().microsecondsSinceEpoch,
           );

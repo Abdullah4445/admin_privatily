@@ -1,54 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import '../chatting_page/chatting_page_logic.dart';
+import 'package:rxdart/rxdart.dart';
 import '../chatting_page/chatting_page_view.dart';
 import '../models/students.dart';
-import '../utils/utils.dart';
 
 class HomeLogic extends GetxController {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  List<Students> getStudents = [];
   final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2';
 
   Stream<List<Students>> getUserStreamOnFirebase() {
-    try {
-      return firestore.collection("ChatsRoomId").snapshots().map((snapshot) {
-        List<Students> studentsList = snapshot.docs.map((doc) {
-          return Students.fromJson(doc.data() as Map<String, dynamic>);
-        }).toList();
-        return studentsList;
-      });
-    } catch (e) {
-      // Streams mein errors ko normally throw karte hain ya default empty list dete hain
-      Get.snackbar("Error", "Failed to fetch users: $e");
-      return const Stream.empty();
-    }
+    return firestore.collection("ChatsRoomId").snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Students.fromJson(doc.data() as Map<String, dynamic>))
+          .toList();
+    }).onErrorReturn([]);
   }
 
-
   Future<void> createChatRoomId(String otherUserId, String receiverName) async {
+    if (otherUserId.isEmpty) {
+      Get.snackbar("Error", "❗ otherUserId is empty");
+      return;
+    }
+
+    String chatRoomId = generateChatRoomId(fixedAdminId, otherUserId);
+
     try {
-      if (otherUserId.isEmpty) {
-        Get.snackbar("Error", "❗ otherUserId is empty");
-        return;
-      }
-
-      String chatRoomId = generateChatRoomId(otherUserId,fixedAdminId, );
-
-      print("📌 fixedAdminId: $fixedAdminId");
-      print("📌 otherUserId: $otherUserId");
-      print("🔍 Checking ChatRoom: $chatRoomId");
-
-      DocumentSnapshot chatRoomDoc = await firestore
-          .collection("ChatsRoomId")
-          .doc(chatRoomId)
-          .get();
+      DocumentSnapshot chatRoomDoc = await firestore.collection("ChatsRoomId").doc(chatRoomId).get();
 
       if (!chatRoomDoc.exists) {
-        print("🆕 Chat Room Does NOT Exist, creating new one...");
         await firestore.collection('ChatsRoomId').doc(chatRoomId).set({
           'chatRoomId': chatRoomId,
           'participants': [fixedAdminId, otherUserId],
@@ -59,8 +40,7 @@ class HomeLogic extends GetxController {
         print("⚡ Chat Room Already Exists: $chatRoomId");
       }
 
-      // Navigate to chat page
-      Get.to(() => ChattingPage (
+      Get.to(() => ChattingPage(
         chatRoomId: chatRoomId,
         receiverId: otherUserId,
         receiverName: receiverName,
@@ -69,5 +49,20 @@ class HomeLogic extends GetxController {
       Get.snackbar("Error", "❌ Failed to create chat room: $e");
       print("❌ Error creating chat room: $e");
     }
+  }
+
+  String generateChatRoomId(String userA, String userB) {
+    List<String> ids = [userA, userB];
+
+    // Ensure fixedAdminId is always the first element
+    if (userA != fixedAdminId) {
+      ids = [fixedAdminId, userA];  //put userA in userB's old place
+    } else {
+      ids = [userA, userB]; //userA is already the fixed admin id
+    }
+
+    String chatRoomId = ids.join("-");
+    print("🔧 Generated ChatRoomId: $chatRoomId");
+    return chatRoomId;
   }
 }

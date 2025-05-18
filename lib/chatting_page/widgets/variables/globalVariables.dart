@@ -1,1 +1,2 @@
 String? globalChatRoomId;
+String? globalreceiverName;

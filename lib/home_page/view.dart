@@ -70,11 +70,11 @@ class HomePage extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
                 contentPadding: const EdgeInsets.all(12),
-                onTap: () => logic.createChatRoomId(user.id, user.guestName),
+                onTap: () => logic.createChatRoomId(user.id, user.name),
                 leading: CircleAvatar(
                   backgroundColor: Colors.deepPurple,
                   child: Text(
-                    user.guestName.isNotEmpty ? user.guestName[0].toUpperCase() : '?',
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -82,7 +82,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 title: Text(
-                  user.guestName,
+                  user.name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
