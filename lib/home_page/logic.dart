@@ -8,7 +8,7 @@ import '../models/students.dart';
 class HomeLogic extends GetxController {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
-  final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2';
+  final String fixedAdminId = 'bnS6fNg9srhKktTSufF2AA9tdQZ2'; //fixedAdminId
 
   Stream<List<Students>> getUserStreamOnFirebase() {
     return firestore.collection("ChatsRoomId").snapshots().map((snapshot) {
